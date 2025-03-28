@@ -9,15 +9,27 @@ function convertMs(ms) {
   const hour = minute * 60;
   const day = hour * 24;
 
-  const days = Math.floor(ms / day);
-  const hours = Math.floor((ms % day) / hour);
-  const minutes = Math.floor(((ms % day) % hour) / minute);
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  const days = addLeadingZero(Math.floor(ms / day));
+  const hours = addLeadingZero(Math.floor((ms % day) / hour));
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute));
+  const seconds = addLeadingZero(
+    Math.floor((((ms % day) % hour) % minute) / second)
+  );
 
   return { days, hours, minutes, seconds };
 }
 
-let userSelectedDate;
+const input = document.querySelector("input[type = 'text']");
+const btnStart = document.querySelector('.btn-start');
+const spanDays = document.querySelector('span[data-days]');
+const spanHours = document.querySelector('span[data-hours]');
+const spanMinutes = document.querySelector('span[data-minutes]');
+const spanSeconds = document.querySelector('span[data-seconds]');
+
+btnStart.addEventListener('click', handleStart);
+
+let userSelectedDate = '';
+let idInterval = '';
 
 const options = {
   enableTime: true,
@@ -35,33 +47,36 @@ const options = {
         titleColor: 'white',
         messageColor: 'white',
       });
+      btnStart.setAttribute('disabled', 'true');
     } else {
       btnStart.removeAttribute('disabled');
     }
   },
 };
-
-const input = document.querySelector("input[type = 'text']");
-const btnStart = document.querySelector('.btn-start');
-const spanDays = document.querySelector('span[data-days]');
-const spanHours = document.querySelector('span[data-hours]');
-const spanMinutes = document.querySelector('span[data-minutes]');
-const spanSeconds = document.querySelector('span[data-seconds]');
-
 flatpickr(input, options);
 
-btnStart.addEventListener('click', handleStart);
+function handleStart() {
+  btnStart.disabled = true;
+  input.disabled = true;
 
-function handleStart(event) {
-  btnStart.disabled = 'true';
-  input.disabled = 'true';
-  const startTime = Date.now();
-  const idInterval = setInterval(() => {
-    const currentTime = Date.now();
-    const totalTime = currentTime - startTime;
+  idInterval = setInterval(() => {
+    const startTime = Date.now();
+    const totalTime = userSelectedDate - startTime;
     const resTime = convertMs(totalTime);
+    console.log(resTime);
 
-    updateClockface();
+    updateClockface(resTime);
+
+    if (
+      !+resTime.days &&
+      !+resTime.hours &&
+      !+resTime.minutes &&
+      !+resTime.seconds
+    ) {
+      clearInterval(idInterval);
+      btnStart.removeAttribute('disabled');
+      input.removeAttribute('disabled');
+    }
   }, 1000);
 }
 
